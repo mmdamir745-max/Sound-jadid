@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ضبط صوت با کد ملی (گفتاری)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 16px;
+        }
+        .card {
+            background: white;
+            max-width: 500px;
+            width: 100%;
+            padding: 30px 25px;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            transition: 0.3s;
+        }
+        h1 {
+            font-size: 24px;
+            color: #1e2b3c;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .sub {
+            color: #5e6f8d;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            font-weight: 500;
+            color: #1e2b3c;
+            font-size: 14px;
+            text-align: right;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-row input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #dce1ec;
+            border-radius: 14px;
+            font-size: 16px;
+            transition: 0.2s;
+            background: #f8faff;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .input-row input:focus {
+            border-color: #3b6eff;
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 110, 255, 0.15);
+        }
+        .input-row input:invalid {
+            border-color: #ff5e7a;
+        }
+        .btn-voice {
+            background: #805ad5;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            min-width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .btn-voice:hover:not(:disabled) {
+            background: #6b46c1;
+            transform: scale(1.02);
+        }
+        .btn-voice:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-voice.listening {
+            background: #e53e3e;
+            animation: pulse-voice 1s infinite;
+        }
+        @keyframes pulse-voice {
+            0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
+        }
+        .status-box {
+            background: #f0f4fe;
+            border-radius: 16px;
+            padding: 12px;
+            margin: 16px 0 20px;
+            font-size: 14px;
+            color: #1e2b3c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .status-badge {
+            background: #2d4059;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-badge.recording {
+            background: #e53e3e;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .timer {
+            font-feature-settings: "tnum";
+            font-weight: 600;
+            color: #1e2b3c;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0 10px;
+        }
+        .btn {
+            border: none;
+            background: #eef2f7;
+            color: #1e2b3c;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1 0 auto;
+            min-width: 90px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        }
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-primary {
+            background: #3b6eff;
+            color: white;
+        }
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #dce1ec;
+        }
+        .btn-download {
+            background: #6b46c1;
+            color: white;
+        }
+        .btn-download:disabled {
+            background: #b8a5d9;
+        }
+        .btn-share {
+            background: #0e9f9f;
+            color: white;
+        }
+        .btn-share:disabled {
+            background: #9ad3d3;
+        }
+        .btn-reset {
+            background: #ed8936;
+            color: white;
+            border: none;
+        }
+        .btn-reset:disabled {
+            background: #f6c89a;
+        }
+        .audio-player {
+            margin: 16px 0 10px;
+            width: 100%;
+            border-radius: 40px;
+            background: #f0f4fe;
+            padding: 4px;
+        }
+        audio {
+            width: 100%;
+            border-radius: 40px;
+            outline: none;
+        }
+        .error-msg {
+            color: #e53e3e;
+            font-size: 13px;
+            min-height: 20px;
+            margin: 6px 0 0;
+        }
+        .footer {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #8896b0;
+            border-top: 1px solid #eef2f7;
+            padding-top: 18px;
+        }
+        .code-display {
+            background: #eef2f7;
+            border-radius: 12px;
+            padding: 6px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e2b3c;
+            display: inline-block;
+            margin-top: 4px;
+            direction: ltr;
+        }
+        .voice-hint {
+            font-size: 12px;
+            color: #5e6f8d;
+            margin-top: 4px;
+            text-align: right;
+        }
+        .offline-banner {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 13px;
+            margin-bottom: 14px;
+            display: none;
+        }
+        .offline-banner.show {
+            display: block;
+        }
+        .btn-keypad-toggle {
+            background: #2d4059;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            min-width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .btn-keypad-toggle:hover {
+            background: #1e2b3c;
+            transform: scale(1.02);
+        }
+        .btn-keypad-toggle.active {
+            background: #3b6eff;
+        }
+        .keypad {
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 12px 0 4px;
+            direction: ltr;
+        }
+        .keypad.show {
+            display: grid;
+        }
+        .keypad button {
+            border: none;
+            background: #eef2f7;
+            color: #1e2b3c;
+            font-size: 22px;
+            font-weight: 600;
+            padding: 14px 0;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .keypad button:hover {
+            background: #dce5f5;
+        }
+        .keypad button:active {
+            transform: scale(0.94);
+            background: #c9d8f2;
+        }
+        .keypad button.key-backspace {
+            background: #fde8e8;
+            color: #c53030;
+            font-size: 18px;
+        }
+        .keypad button.key-backspace:hover {
+            background: #fbd0d0;
+        }
+        .keypad button.key-clear {
+            background: #fff3e0;
+            color: #b7621b;
+            font-size: 16px;
+        }
+        .keypad button.key-clear:hover {
+            background: #ffe3bd;
+        }
+        @media (max-width: 480px) {
+            .btn {
+                flex: 1 1 100%;
+            }
+            .status-box {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .input-row {
+                flex-wrap: wrap;
+            }
+            .btn-voice {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🎤 ضبط صوت با کد ملی</h1>
+        <p class="sub">کد را تایپ کنید، با صفحه‌کلید وارد کنید یا با میکروفون بگویید</p>
+
+        <!-- هشدار آفلاین -->
+        <div class="offline-banner" id="offlineBanner">
+            📡 اینترنت در دسترس نیست — تشخیص گفتار غیرفعال شد. از صفحه‌کلید عددی استفاده کنید.
+        </div>
+
+        <!-- ورودی کد ملی + دکمه گفتن + دکمه کیبورد -->
+        <div class="input-group">
+            <label for="nationalCode">کد ملی (۱۰ رقم)</label>
+            <div class="input-row">
+                <input type="text" id="nationalCode" placeholder="مثلاً ۱۲۳۴۵۶۷۸۹۰" maxlength="10" inputmode="numeric" pattern="\d{10}" required>
+                <button class="btn-voice" id="voiceBtn" title="کد ملی را بگویید">🎤</button>
+                <button class="btn-keypad-toggle" id="keypadToggleBtn" title="صفحه‌کلید عددی">🔢</button>
+            </div>
+            <div class="voice-hint" id="voiceHint">برای گفتن کد، روی 🎤 کلیک کنید و اعداد را واضح بگویید</div>
+            <!-- صفحه‌کلید عددی آفلاین -->
+            <div class="keypad" id="keypad">
+                <button type="button" data-key="1">1</button>
+                <button type="button" data-key="2">2</button>
+                <button type="button" data-key="3">3</button>
+                <button type="button" data-key="4">4</button>
+                <button type="button" data-key="5">5</button>
+                <button type="button" data-key="6">6</button>
+                <button type="button" data-key="7">7</button>
+                <button type="button" data-key="8">8</button>
+                <button type="button" data-key="9">9</button>
+                <button type="button" class="key-clear" data-key="clear">پاک کردن</button>
+                <button type="button" data-key="0">0</button>
+                <button type="button" class="key-backspace" data-key="backspace">⌫</button>
+            </div>
+        </div>
+
+        <!-- نمایش کد ملی همراه با صوت (در صورت وجود) -->
+        <div id="codeDisplayArea" style="display: none; margin: -10px 0 10px;">
+            <span style="color: #5e6f8d; font-size: 13px;">کد ملی همراه با این صوت:</span>
+            <span class="code-display" id="displayNationalCode"></span>
+        </div>
+
+        <!-- وضعیت و تایمر -->
+        <div class="status-box">
+            <span id="statusText">⏹️ آماده ضبط</span>
+            <span class="status-badge" id="statusBadge">غیرفعال</span>
+            <span class="timer" id="timerDisplay">۰۰:۰۰</span>
+        </div>
+
+        <!-- دکمه‌های کنترل -->
+        <div class="btn-group">
+            <button class="btn btn-danger" id="recordBtn" disabled>🔴 ضبط</button>
+            <button class="btn btn-outline" id="stopBtn" disabled>⏹ توقف</button>
+            <button class="btn btn-primary" id="playBtn" disabled>▶️ پخش</button>
+        </div>
+
+        <!-- پلیر صوتی -->
+        <div class="audio-player">
+            <audio id="audioPlayer" controls></audio>
+        </div>
+
+        <!-- دکمه دانلود و ریست -->
+        <div class="btn-group">
+            <button class="btn btn-download" id="downloadBtn" disabled>⬇️ دانلود با کد ملی</button>
+            <button class="btn btn-share" id="shareBtn" disabled>📤 اشتراک‌گذاری</button>
+            <button class="btn btn-reset" id="resetBtn" disabled>🔄 ریست</button>
+        </div>
+        <div id="errorMsg" class="error-msg"></div>
+
+        <div class="footer">
+            ⚡ کد ملی در نام فایل دانلودی درج می‌شود
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // عناصر DOM
+            const nationalCodeInput = document.getElementById('nationalCode');
+            const voiceBtn = document.getElementById('voiceBtn');
+            const voiceHint = document.getElementById('voiceHint');
+            const recordBtn = document.getElementById('recordBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const playBtn = document.getElementById('playBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const shareBtn = document.getElementById('shareBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const audioPlayer = document.getElementById('audioPlayer');
+            const statusText = document.getElementById('statusText');
+            const statusBadge = document.getElementById('statusBadge');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const errorMsg = document.getElementById('errorMsg');
+            const codeDisplayArea = document.getElementById('codeDisplayArea');
+            const displayNationalCode = document.getElementById('displayNationalCode');
+            const offlineBanner = document.getElementById('offlineBanner');
+            const keypadToggleBtn = document.getElementById('keypadToggleBtn');
+            const keypad = document.getElementById('keypad');
+
+            // متغیرهای وضعیت
+            let mediaRecorder = null;
+            let audioChunks = [];
+            let recordedBlob = null;
+            let recordingTimer = null;
+            let startTime = 0;
+            let isRecording = false;
+            let currentNationalCode = '';
+            let currentAudioURL = null;
+
+            // تشخیص گفتار
+            let recognition = null;
+            let isListening = false;
+
+            // تشخیص iOS (آیفون/آیپد) — تشخیص گفتار فارسی در iOS پشتیبانی نمی‌شود
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+            // بررسی پشتیبانی از Speech Recognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition && !isIOS) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'fa-IR';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+            } else if (isIOS) {
+                voiceBtn.disabled = true;
+                voiceHint.textContent = '📱 در آیفون تشخیص گفتار فارسی پشتیبانی نمی‌شود — از صفحه‌کلید عددی 🔢 استفاده کنید';
+                voiceHint.style.color = '#b7621b';
+                // نمایش خودکار صفحه‌کلید عددی در iOS
+                keypad.classList.add('show');
+                keypadToggleBtn.classList.add('active');
+            } else {
+                voiceBtn.disabled = true;
+                voiceHint.textContent = '❌ مرورگر شما از تشخیص گفتار پشتیبانی نمی‌کند. از صفحه‌کلید عددی 🔢 استفاده کنید.';
+                voiceHint.style.color = '#e53e3e';
+                keypad.classList.add('show');
+                keypadToggleBtn.classList.add('active');
+            }
+
+            // تبدیل اعداد فارسی/عربی به انگلیسی
+            function toEnglishDigits(str) {
+                const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+                const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
+                let result = str;
+                for (let i = 0; i < 10; i++) {
+                    const persian = persianDigits[i];
+                    const arabic = arabicDigits[i];
+                    const english = String(i);
+                    result = result.replace(new RegExp(persian, 'g'), english);
+                    result = result.replace(new RegExp(arabic, 'g'), english);
+                }
+                return result;
+            }
+
+            // اعتبارسنجی کد ملی (۱۰ رقم)
+            function isValidNationalCode(code) {
+                return /^\d{10}$/.test(code);
+            }
+
+            function updateButtons() {
+                const code = nationalCodeInput.value.trim();
+                const codeValid = isValidNationalCode(code);
+                const hasBlob = recordedBlob !== null;
+
+                recordBtn.disabled = !codeValid || isRecording || hasBlob;
+                stopBtn.disabled = !isRecording;
+                playBtn.disabled = !hasBlob;
+                downloadBtn.disabled = !hasBlob || !codeValid;
+                shareBtn.disabled = !hasBlob || !codeValid;
+                resetBtn.disabled = isRecording || !hasBlob;
+
+                // اگر کد ملی تغییر کرده و با کد ذخیره‌شده همخوانی ندارد، دانلود و اشتراک غیرفعال می‌شود
+                if (hasBlob && currentNationalCode && code !== currentNationalCode) {
+                    downloadBtn.disabled = true;
+                    shareBtn.disabled = true;
+                }
+
+                // دکمه گفتن: فقط وقتی فعال که تشخیص موجود باشد، ضبط در حال انجام نباشد و اینترنت وصل باشد
+                voiceBtn.disabled = !recognition || isRecording || isListening || !navigator.onLine;
+
+                if (hasBlob && currentNationalCode) {
+                    codeDisplayArea.style.display = 'block';
+                    displayNationalCode.textContent = currentNationalCode;
+                } else {
+                    codeDisplayArea.style.display = 'none';
+                }
+            }
+
+            function showError(msg) {
+                errorMsg.textContent = msg;
+            }
+
+            function clearError() {
+                errorMsg.textContent = '';
+            }
+
+            function setRecordingState(recording) {
+                isRecording = recording;
+                if (recording) {
+                    statusText.textContent = '🔴 در حال ضبط...';
+                    statusBadge.textContent = 'ضبط';
+                    statusBadge.className = 'status-badge recording';
+                } else {
+                    statusText.textContent = recordedBlob ? '⏹ ضبط شده' : '⏹️ آماده ضبط';
+                    statusBadge.textContent = recordedBlob ? 'ذخیره شده' : 'غیرفعال';
+                    statusBadge.className = 'status-badge';
+                }
+                updateButtons();
+            }
+
+            function startTimer() {
+                startTime = Date.now();
+                if (recordingTimer) clearInterval(recordingTimer);
+                recordingTimer = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                    const secs = String(elapsed % 60).padStart(2, '0');
+                    timerDisplay.textContent = `${mins}:${secs}`;
+                }, 200);
+            }
+
+            function stopTimer() {
+                if (recordingTimer) {
+                    clearInterval(recordingTimer);
+                    recordingTimer = null;
+                }
+            }
+
+            function resetAll(clearCode = true) {
+                if (mediaRecorder && isRecording) {
+                    mediaRecorder.stop();
+                }
+                audioChunks = [];
+                recordedBlob = null;
+                currentNationalCode = '';
+                if (clearCode) {
+                    nationalCodeInput.value = '';
+                    if (!recognition) {
+                        voiceHint.textContent = isIOS
+                            ? '📱 در آیفون تشخیص گفتار فارسی پشتیبانی نمی‌شود — از صفحه‌کلید عددی 🔢 استفاده کنید'
+                            : '❌ مرورگر شما از تشخیص گفتار پشتیبانی نمی‌کند. از صفحه‌کلید عددی 🔢 استفاده کنید.';
+                        voiceHint.style.color = isIOS ? '#b7621b' : '#e53e3e';
+                    } else if (navigator.onLine) {
+                        voiceHint.textContent = 'برای گفتن کد، روی 🎤 کلیک کنید و اعداد را واضح بگویید';
+                        voiceHint.style.color = '#5e6f8d';
+                    } else {
+                        voiceHint.textContent = '📡 تشخیص گفتار به اینترنت نیاز دارد — از صفحه‌کلید عددی استفاده کنید';
+                        voiceHint.style.color = '#c53030';
+                    }
+                }
+                if (currentAudioURL) {
+                    URL.revokeObjectURL(currentAudioURL);
+                    currentAudioURL = null;
+                }
+                audioPlayer.removeAttribute('src');
+                audioPlayer.load();
+                stopTimer();
+                timerDisplay.textContent = '۰۰:۰۰';
+                setRecordingState(false);
+                clearError();
+                codeDisplayArea.style.display = 'none';
+                updateButtons();
+            }
+
+            // ========== حالت آنلاین/آفلاین ==========
+            function updateOnlineState() {
+                const online = navigator.onLine;
+                if (online) {
+                    offlineBanner.classList.remove('show');
+                    if (recognition) {
+                        voiceHint.textContent = 'برای گفتن کد، روی 🎤 کلیک کنید و اعداد را واضح بگویید';
+                        voiceHint.style.color = '#5e6f8d';
+                    }
+                } else {
+                    offlineBanner.classList.add('show');
+                    // نمایش خودکار صفحه‌کلید در حالت آفلاین
+                    keypad.classList.add('show');
+                    keypadToggleBtn.classList.add('active');
+                    voiceHint.textContent = '📡 تشخیص گفتار به اینترنت نیاز دارد — از صفحه‌کلید عددی استفاده کنید';
+                    voiceHint.style.color = '#c53030';
+                }
+                updateButtons();
+            }
+
+            window.addEventListener('online', updateOnlineState);
+            window.addEventListener('offline', updateOnlineState);
+
+            // ========== صفحه‌کلید عددی (آفلاین) ==========
+            keypadToggleBtn.addEventListener('click', function() {
+                keypad.classList.toggle('show');
+                keypadToggleBtn.classList.toggle('active');
+            });
+
+            keypad.addEventListener('click', function(e) {
+                const btn = e.target.closest('button[data-key]');
+                if (!btn) return;
+                const key = btn.dataset.key;
+                if (key === 'backspace') {
+                    nationalCodeInput.value = nationalCodeInput.value.slice(0, -1);
+                } else if (key === 'clear') {
+                    nationalCodeInput.value = '';
+                } else if (nationalCodeInput.value.length < 10) {
+                    nationalCodeInput.value += key;
+                }
+                clearError();
+                updateButtons();
+                if (nationalCodeInput.value.length === 10) {
+                    voiceHint.textContent = '✅ کد ملی کامل شد: ' + nationalCodeInput.value;
+                    voiceHint.style.color = '#38a169';
+                }
+            });
+
+            // ========== تشخیص گفتار ==========
+            function startVoiceInput() {
+                if (!recognition || isListening) return;
+                if (!navigator.onLine) {
+                    showError('تشخیص گفتار به اینترنت نیاز دارد. از صفحه‌کلید عددی 🔢 استفاده کنید.');
+                    keypad.classList.add('show');
+                    keypadToggleBtn.classList.add('active');
+                    return;
+                }
+                if (isRecording) {
+                    showError('در حین ضبط صدا نمی‌توانید کد را بگویید.');
+                    return;
+                }
+
+                clearError();
+                try {
+                    recognition.start();
+                } catch (e) {
+                    // اگر تشخیص از قبل فعال باشد start خطا می‌دهد
+                    console.warn('خطا در شروع تشخیص گفتار:', e);
+                    return;
+                }
+                isListening = true;
+                voiceBtn.classList.add('listening');
+                voiceHint.textContent = '🎤 در حال گوش دادن... لطفاً کد ۱۰ رقمی را بگویید';
+                voiceHint.style.color = '#e53e3e';
+                updateButtons();
+            }
+
+            if (recognition) {
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    // اول تبدیل ارقام فارسی/عربی به انگلیسی، بعد حذف غیر-رقم‌ها
+                    // (اگر اول \D حذف شود، ارقام فارسی هم پاک می‌شوند!)
+                    const englishDigits = toEnglishDigits(transcript).replace(/\D/g, '');
+                    // فقط ۱۰ رقم اول را بگیر
+                    const finalCode = englishDigits.slice(0, 10);
+                    if (finalCode.length === 10) {
+                        nationalCodeInput.value = finalCode;
+                        // فعال‌سازی رویداد input برای به‌روزرسانی وضعیت
+                        const evt = new Event('input', { bubbles: true });
+                        nationalCodeInput.dispatchEvent(evt);
+                        clearError();
+                        voiceHint.textContent = '✅ کد ملی تشخیص داده شد: ' + finalCode;
+                        voiceHint.style.color = '#38a169';
+                    } else {
+                        showError('تعداد ارقام تشخیص داده شده (' + finalCode.length + ') کمتر از ۱۰ است. دوباره تلاش کنید.');
+                        voiceHint.textContent = '❌ دوباره سعی کنید، فقط اعداد ۱۰ رقمی';
+                        voiceHint.style.color = '#e53e3e';
+                    }
+                };
+
+                recognition.onerror = function(event) {
+                    console.warn('خطای تشخیص گفتار:', event.error);
+                    if (event.error === 'not-allowed') {
+                        showError('دسترسی به میکروفون برای گفتن کد مجاز نیست.');
+                    } else if (event.error === 'no-speech') {
+                        showError('صدایی تشخیص داده نشد. لطفاً واضح صحبت کنید.');
+                    } else if (event.error === 'network') {
+                        showError('تشخیص گفتار به اینترنت نیاز دارد. از صفحه‌کلید عددی 🔢 استفاده کنید.');
+                        keypad.classList.add('show');
+                        keypadToggleBtn.classList.add('active');
+                    } else {
+                        showError('خطا در تشخیص گفتار: ' + event.error);
+                    }
+                    isListening = false;
+                    voiceBtn.classList.remove('listening');
+                    voiceHint.textContent = 'برای گفتن کد، روی 🎤 کلیک کنید';
+                    voiceHint.style.color = '#5e6f8d';
+                    updateButtons();
+                };
+
+                recognition.onend = function() {
+                    isListening = false;
+                    voiceBtn.classList.remove('listening');
+                    if (!errorMsg.textContent) {
+                        voiceHint.textContent = 'برای گفتن کد، روی 🎤 کلیک کنید';
+                        voiceHint.style.color = '#5e6f8d';
+                    }
+                    updateButtons();
+                };
+            }
+
+            // رویداد کلیک برای تشخیص گفتار
+            voiceBtn.addEventListener('click', startVoiceInput);
+
+            // ========== ضبط صوت اصلی ==========
+            async function startRecording() {
+                clearError();
+                const code = nationalCodeInput.value.trim();
+                if (!isValidNationalCode(code)) {
+                    showError('لطفاً کد ملی ۱۰ رقمی معتبر وارد کنید.');
+                    return;
+                }
+
+                if (recordedBlob) {
+                    // ضبط مجدد: صوت قبلی پاک می‌شود ولی کد ملی واردشده باقی می‌ماند
+                    resetAll(false);
+                }
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                        recordedBlob = new Blob(audioChunks, { type: mimeType });
+                        // آزادسازی URL قبلی برای جلوگیری از نشت حافظه
+                        if (currentAudioURL) URL.revokeObjectURL(currentAudioURL);
+                        currentAudioURL = URL.createObjectURL(recordedBlob);
+                        audioPlayer.src = currentAudioURL;
+                        audioPlayer.load();
+                        currentNationalCode = code;
+                        setRecordingState(false);
+                        stopTimer();
+                        statusText.textContent = '✅ ضبط کامل شد';
+                        statusBadge.textContent = 'ذخیره شده';
+                        statusBadge.className = 'status-badge';
+                        updateButtons();
+                        stream.getTracks().forEach(track => track.stop());
+                        recordBtn.disabled = true;
+                        codeDisplayArea.style.display = 'block';
+                        displayNationalCode.textContent = currentNationalCode;
+                    };
+
+                    mediaRecorder.start(1000);
+                    setRecordingState(true);
+                    startTimer();
+                    statusText.textContent = '🔴 در حال ضبط...';
+                    statusBadge.textContent = 'ضبط';
+                    statusBadge.className = 'status-badge recording';
+                    recordBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    playBtn.disabled = true;
+                    downloadBtn.disabled = true;
+                    resetBtn.disabled = true;
+                    clearError();
+                    // غیرفعال کردن دکمه گفتن در حین ضبط
+                    updateButtons();
+
+                } catch (err) {
+                    console.error('خطا در دسترسی به میکروفون:', err);
+                    showError('دسترسی به میکروفون ممکن نیست. لطفاً مجوز را بررسی کنید.');
+                    setRecordingState(false);
+                    stopTimer();
+                    timerDisplay.textContent = '۰۰:۰۰';
+                    updateButtons();
+                }
+            }
+
+            function stopRecording() {
+                if (mediaRecorder && isRecording) {
+                    mediaRecorder.stop();
+                } else {
+                    setRecordingState(false);
+                    stopTimer();
+                    updateButtons();
+                }
+            }
+
+            function playAudio() {
+                if (recordedBlob) {
+                    audioPlayer.play().catch(err => {
+                        console.warn('پخش خودکار ممکن است توسط مرورگر مسدود شود:', err);
+                    });
+                } else {
+                    showError('هیچ صدایی برای پخش وجود ندارد.');
+                }
+            }
+
+            // بررسی اعتبار قبل از دانلود/اشتراک — در صورت مشکل، پیام خطا و مقدار null برمی‌گرداند
+            function getValidatedFileName() {
+                const code = nationalCodeInput.value.trim();
+                if (!isValidNationalCode(code)) {
+                    showError('کد ملی نامعتبر است. لطفاً ۱۰ رقم وارد کنید.');
+                    return null;
+                }
+                if (!recordedBlob) {
+                    showError('ابتدا صدایی را ضبط کنید.');
+                    return null;
+                }
+                if (code !== currentNationalCode) {
+                    showError('کد ملی وارد شده با کد ملی مربوط به این صوت مطابقت ندارد. لطفاً ریست کنید و دوباره ضبط کنید.');
+                    return null;
+                }
+
+                let extension = 'webm';
+                if (recordedBlob.type.includes('wav')) extension = 'wav';
+                else if (recordedBlob.type.includes('mp3') || recordedBlob.type.includes('mpeg')) extension = 'mp3';
+                else if (recordedBlob.type.includes('ogg')) extension = 'ogg';
+                else if (recordedBlob.type.includes('mp4') || recordedBlob.type.includes('aac')) extension = 'm4a'; // خروجی Safari در آیفون/مک
+
+                return `sound_${code}.${extension}`;
+            }
+
+            function downloadAudio() {
+                const fileName = getValidatedFileName();
+                if (!fileName) return;
+
+                const url = URL.createObjectURL(recordedBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                clearError();
+            }
+
+            // ========== اشتراک‌گذاری (Web Share API) ==========
+            async function shareAudio() {
+                const fileName = getValidatedFileName();
+                if (!fileName) return;
+
+                const file = new File([recordedBlob], fileName, { type: recordedBlob.type || 'audio/webm' });
+
+                // بررسی پشتیبانی از اشتراک فایل
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'ضبط صوت با کد ملی',
+                            text: 'فایل صوتی با کد ملی ' + currentNationalCode
+                        });
+                        clearError();
+                    } catch (err) {
+                        // لغو توسط کاربر خطا محسوب نمی‌شود
+                        if (err.name !== 'AbortError') {
+                            console.warn('خطا در اشتراک‌گذاری:', err);
+                            showError('اشتراک‌گذاری انجام نشد. می‌توانید از دکمه دانلود استفاده کنید.');
+                        }
+                    }
+                } else {
+                    showError('مرورگر شما از اشتراک‌گذاری فایل پشتیبانی نمی‌کند. از دکمه دانلود استفاده کنید.');
+                }
+            }
+
+            // رویدادهای ورودی کد ملی
+            nationalCodeInput.addEventListener('input', function() {
+                const val = this.value.trim();
+                this.value = toEnglishDigits(val.replace(/\D/g, '').slice(0, 10));
+                clearError();
+                updateButtons();
+            });
+
+            // رویداد دکمه‌ها
+            recordBtn.addEventListener('click', startRecording);
+            stopBtn.addEventListener('click', stopRecording);
+            playBtn.addEventListener('click', playAudio);
+            downloadBtn.addEventListener('click', downloadAudio);
+            shareBtn.addEventListener('click', shareAudio);
+            resetBtn.addEventListener('click', () => resetAll(true));
+
+            // تنظیم اولیه
+            updateButtons();
+            recordBtn.disabled = true;
+            stopBtn.disabled = true;
+            playBtn.disabled = true;
+            downloadBtn.disabled = true;
+            shareBtn.disabled = true;
+            resetBtn.disabled = true;
+            codeDisplayArea.style.display = 'none';
+            updateOnlineState();
+
+            console.log('اپلیکیشن با قابلیت گفتن کد ملی و صفحه‌کلید آفلاین راه‌اندازی شد.');
+        })();
+    </script>
+</body>
+</html>
